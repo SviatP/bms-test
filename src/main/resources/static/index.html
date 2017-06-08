@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head> 
+    <title>bms demo</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+    <p>Get your greeting <a href="/api/parse">here</a></p>
+
+
+    <div th:if="${message}">
+        <h2 th:text="${message}"/>
+    </div>
+
+    <div>
+        <form method="POST" enctype="multipart/form-data" action="/api/parse">
+            <table>
+                <tr><td>File to upload:</td><td><input type="text" name="file" /></td></tr>
+                <tr><td></td><td><input type="submit" value="GO" /></td></tr>
+            </table>
+        </form>
+    </div>
+=============================
+    <div>
+        <ul>
+            <li th:each="file : ${files}">
+                <a th:href="${file}" th:text="${file}" />
+            </li>
+        </ul>
+    </div>
+</body>
+</html>
