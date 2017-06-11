@@ -4,6 +4,7 @@ import com.potaychuk.XMLWriter.XMLWriter;
 import com.potaychuk.domain.EventLog;
 import com.potaychuk.meta.MetaLog;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -12,60 +13,58 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Created by Potaychuk Sviatoslav on 08.06.2017.
  */
-public class LogParser extends Thread{
+public class LogParser extends Thread {
 
     private EventLog eventLog;
+    private XMLWriter xmlWriter;
+    private File log;
+    private File dist;
 
-    public static void main(String[] args) {
-        LogParser logParser = new LogParser();
-        logParser.setEventLog(new EventLog());
-        logParser.parse(new File("C:\\Users\\Potaychuk Sviatoslav\\Desktop\\123.txt"));
-        new XMLWriter().writeToXml(logParser.eventLog, new File("C:\\Users\\Potaychuk Sviatoslav\\IdeaProjects\\bms_test\\bms-test\\src\\main\\resources\\static\\demo.xml"));
-        System.out.println(logParser.eventLog);
-    }
     @Override
     public void run() {
-        super.run();
+        try {
+            eventLog = new EventLog();
+            parse(log);
+            String filePath = getClass().getClassLoader().getResource("static").getPath() + "/" + "xml-log/demo.xml";
+            dist = new File(filePath.replace("%20", " "));
+            if (dist.exists()) {
+                dist.delete();
+            }
+            dist.createNewFile();
+            xmlWriter = new XMLWriter();
+            xmlWriter.writeToXml(eventLog, dist);
+            sleep(MetaLog.TIME_TO_WAIT);
+            System.out.println("Hi im awake");
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void parse(File file) {
-        int count=0;
         try {
-            String str = new String(Files.readAllBytes(file.toPath()), Charset.defaultCharset());
-//            StringBuilder str = new StringBuilder();
-//            List<String> list = Files.readAllLines(file.toPath());
-//            for (String s: list){
-//                str.append(s);
-//            }
-//            Pattern pattern = Pattern.compile("(.{28,29}((SdlSig\\s)|(Stopping)).*)([0-9]{8}\\.[0-9]{3})?:");
-            Pattern pattern = Pattern.compile("(.{28}((SdlSig\\s)|(Stopping)).*)(?=(\\r\\n))");
-//            Pattern pattern = Pattern.compile("(SdlSig\\s)|(Stopping)");
-//            Pattern pattern = Pattern.compile("(.{28}SdlSig)");
-//            Pattern pattern = Pattern.compile("(key=.*)([0-9]{8,8}\\\\.[0-9]{3,3})?:");
-//            Pattern pattern = Pattern.compile("key=.{8}");
-            Matcher matcher = pattern.matcher(str);
-            while (matcher.find()) {
-                count++;
-                eventLog.getEventsMessages().add(matcher.group());
-//                System.out.println(test);
-//                int start = matcher.start();
-//                int end = matcher.end();
-//                System.out.println(start);
-//                System.out.println(end);
+            List<String> list = Files.readAllLines(file.toPath());
+            List<String> list2 = list.parallelStream().
+                    filter(p -> p.matches(MetaLog.SDLSIG_REGEX) || p.matches(MetaLog.STOPPING_REGEX)).
+                    collect(Collectors.toList());
+            eventLog.setEventsMessages(list2);
 
-//                System.out.println(str.substring(start, end));
-            }
-//            while (matcher.find()){
-//                System.out.println(str.substring(matcher.start(), matcher.end())+"====================");
-//            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("Total Count=: "+count);
+    }
+
+    public File getLog() {
+        return log;
+    }
+
+    public void setLog(File log) {
+        this.log = log;
     }
 
     public EventLog getEventLog() {

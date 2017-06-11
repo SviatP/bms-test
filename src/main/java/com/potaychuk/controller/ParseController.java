@@ -2,6 +2,7 @@ package com.potaychuk.controller;
 
 import com.potaychuk.meta.MetaLog;
 import com.potaychuk.parser.LogParser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,10 +20,24 @@ import java.util.regex.Pattern;
 @RequestMapping(value = "/api")
 public class ParseController {
 
+    private LogParser logParser;
+
+
+
     @PostMapping(value = "/parse")
     public String parseFile(@RequestParam("file")String path) {
-        new LogParser().parse(new File(path));
-        return "well done";
+        File log = new File(path);
+        if (!log.canRead()){
+            return "cant read the file";
+        }
+        if (logParser!=null && logParser.isAlive()){
+            logParser.interrupt();
+        }
+        logParser= new LogParser();
+        logParser.setLog(log);
+        logParser.start();
+        return "watch bms-demo/target/classes/static/xml-log/demo.xml";
+
     }
 
 }
