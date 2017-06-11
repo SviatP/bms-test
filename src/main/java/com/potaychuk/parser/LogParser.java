@@ -3,16 +3,10 @@ package com.potaychuk.parser;
 import com.potaychuk.XMLWriter.XMLWriter;
 import com.potaychuk.domain.EventLog;
 import com.potaychuk.meta.MetaLog;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
-import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
